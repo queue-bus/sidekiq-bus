@@ -6,7 +6,6 @@ module QueueBus
         require 'resque'
 
         load_scheduler
-        load_retry
       end
 
       def redis(&block)
@@ -19,6 +18,10 @@ module QueueBus
 
       def enqueue_at(epoch_seconds, queue_name, klass, hash)
         ::Resque.enqueue_at_with_queue(queue_name, epoch_seconds, klass, hash)
+      end
+
+      def worker_included(base)
+        load_retry(base)
       end
 
       def setup_heartbeat!(queue_name)
@@ -39,12 +42,12 @@ module QueueBus
 
       private
 
-      def load_retry
+      def load_retry(base)
         require 'resque-retry'
-        ::QueueBus::Rider.extend(::Resque::Plugins::ExponentialBackoff)
-        ::QueueBus::Rider.extend(::QueueBus::Adapters::Resque::RetryHandlers)
+        base.extend(::Resque::Plugins::ExponentialBackoff)
+        base.extend(::QueueBus::Adapters::Resque::RetryHandlers)
       rescue LoadError
-        ::QueueBus.log_application("resque-retry gem not available: bus retry will not work")
+        ::QueueBus.log_application("resque-retry gem not available for #{base.name}: bus retry will not work")
       end
 
       def load_scheduler
