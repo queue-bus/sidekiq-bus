@@ -1,23 +1,14 @@
-require 'resque-bus'
-require 'resque'
-require 'resque/scheduler'
+require 'sidekiq-bus'
 
 def reset_test_adapter
   QueueBus.send(:reset)
-  QueueBus.adapter = QueueBus::Adapters::Resque.new
+  QueueBus.adapter = QueueBus::Adapters::Sidekiq.new
 end
 
 def adapter_under_test_class
-  QueueBus::Adapters::Resque
+  QueueBus::Adapters::Sidekiq
 end
 
 def adapter_under_test_symbol
-  :resque
+  :sidekiq
 end
-
-def perform_next_job(worker, &block)
-  return unless job = worker.reserve
-  worker.perform(job, &block)
-  worker.done_working
-end
-

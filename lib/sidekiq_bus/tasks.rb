@@ -1,9 +1,9 @@
-# require 'resque_bus/tasks'
+# require 'sidekiq_bus/tasks'
 # will give you these tasks
 
 
 require "resque/tasks"
-namespace :resquebus do
+namespace :sidekiqbus do
 
   desc "Setup will configure a resque task to run before resque:work"
   task :setup => [ :preload ] do
@@ -38,34 +38,21 @@ namespace :resquebus do
     puts "No subscriptions unsubscribed" if count == 0
   end
 
-  desc "Sets the queue to work the driver  Use: `rake resquebus:driver resque:work`"
+  desc "Sets the queue to work the driver  Use: `rake sidekiqbus:driver resque:work`"
   task :driver => [ :preload ] do
     ENV['QUEUES'] = ::QueueBus.incoming_queue
   end
 
   # Preload app files if this is Rails
   task :preload do
-    require "resque"
-    require "resque-bus"
-    require "resque/failure/redis"
-    require "resque/failure/multiple_with_retry_suppression"
-
-    # change the namespace to be the ones used by QueueBus
-    # save the old one for handling later
-    QueueBus.original_redis = Resque.redis
-    Resque.redis = QueueBus.redis
-
-    Resque::Failure::MultipleWithRetrySuppression.classes = [Resque::Failure::Redis]
-    Resque::Failure.backend = Resque::Failure::MultipleWithRetrySuppression
-
-    Rake::Task["resque:setup"].invoke # loads the environment and such if defined
+    require "sidekiq"
   end
 
 
   # examples to test out the system
   namespace :example do
     desc "Publishes events to example applications"
-    task :publish => [ "resquebus:preload", "resquebus:setup" ] do
+    task :publish => [ "sidekiqbus:preload", "sidekiqbus:setup" ] do
       which = ["one", "two", "three", "other"][rand(4)]
       QueueBus.publish("event_#{which}", { "rand" => rand(99999)})
       QueueBus.publish("event_all", { "rand" => rand(99999)})
@@ -74,7 +61,7 @@ namespace :resquebus do
     end
 
     desc "Sets up an example config"
-    task :register => [ "resquebus:preload"] do
+    task :register => [ "sidekiqbus:preload"] do
       QueueBus.dispatch("example") do
         subscribe "event_one" do
           puts "event1 happened"
@@ -95,12 +82,12 @@ namespace :resquebus do
     end
 
     desc "Subscribes this application to QueueBus example events"
-    task :subscribe => [ :register, "resquebus:subscribe" ]
+    task :subscribe => [ :register, "sidekiqbus:subscribe" ]
 
     desc "Start a QueueBus example worker"
-    task :work => [ :register, "resquebus:setup", "resque:work" ]
+    task :work => [ :register, "sidekiqbus:setup", "resque:work" ]
 
     desc "Start a QueueBus example worker"
-    task :driver => [ :register, "resquebus:driver", "resque:work" ]
+    task :driver => [ :register, "sidekiqbus:driver", "resque:work" ]
   end
 end

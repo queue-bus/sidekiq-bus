@@ -7,7 +7,7 @@ This gem uses Redis and Resque to allow simple asynchronous communication betwee
 To install, include the 'resque-bus' gem and add the following to your Rakefile:
 
 ```ruby
-require "resque_bus/tasks"
+require "sidekiq_bus/tasks"
 ```
 
 ### Example
