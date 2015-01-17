@@ -1,3 +1,3 @@
 module SidekiqBus
-  VERSION = "0.3.5"
+  VERSION = "0.5.0"
 end
