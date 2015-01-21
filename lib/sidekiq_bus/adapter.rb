@@ -4,6 +4,7 @@ module QueueBus
       def enabled!
         # know we are using it
         require 'sidekiq'
+        ::QueueBus::Worker.include ::Sidekiq::Worker
       end
 
       def redis(&block)
@@ -21,10 +22,6 @@ module QueueBus
       def setup_heartbeat!(queue_name)
         # TODO: not sure how to do this or what is means to set this up in Sidekiq
         raise NotImplementedError
-      end
-
-      def worker_included(base)
-        base.include ::Sidekiq::Worker
       end
     end
   end
