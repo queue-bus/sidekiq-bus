@@ -1,8 +1,14 @@
 require 'timecop'
 require 'queue-bus'
 require 'adapter/support'
+require 'pry'
 
 reset_test_adapter
+
+require 'fakeredis'
+Sidekiq.redis = ConnectionPool.new { Redis.new(driver: Redis::Connection::Memory) }
+
+require 'sidekiq/testing'
 
 module QueueBus
   class Runner
@@ -47,6 +53,11 @@ def test_list(*args)
 end
 
 RSpec.configure do |config|
+
+  config.run_all_when_everything_filtered = true
+  config.filter_run focus: true
+  config.alias_example_to :fit, focus: true
+
   config.mock_with :rspec do |c|
     c.syntax = :should
   end
@@ -56,6 +67,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
     reset_test_adapter
+    Sidekiq::Testing.disable!
   end
   config.after(:each) do
     begin
