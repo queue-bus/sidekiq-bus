@@ -116,7 +116,7 @@ Each app needs to tell Redis about its subscriptions:
 
 You'll then need to run Sidekiq. Make sure the bus_incoming queues and the ones you are using are included.
 
-    $ bundle exec sidekiq
+    $ bundle exec sidekiq -q default -q app_b_default -q bus_incoming
 
 ### Local Mode
 
