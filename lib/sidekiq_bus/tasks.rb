@@ -1,8 +1,6 @@
 # require 'sidekiq_bus/tasks'
 # will give you these tasks
 
-
-require "resque/tasks"
 namespace :sidekiqbus do
 
   desc "Setup will configure a resque task to run before resque:work"
