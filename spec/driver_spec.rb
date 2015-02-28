@@ -35,7 +35,7 @@ module QueueBus
     end
 
     describe ".perform" do
-      let(:attributes) { {"x" => "y", "bus_class_proxy" => "ResqueBus::Driver"} }
+      let(:attributes) { {"x" => "y"} }
 
       before(:each) do
         QueueBus.redis { |redis| redis.smembers("queues") }.should == []

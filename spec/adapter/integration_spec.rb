@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'celluloid'
 require 'sidekiq/scheduled'
 
-describe "Resque Integration" do
+describe "Sidekiq Integration" do
   describe "Happy Path" do
     before(:each) do
       Sidekiq::Testing.fake!
