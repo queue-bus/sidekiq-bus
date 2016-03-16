@@ -1,5 +1,7 @@
 require 'spec_helper'
-require 'celluloid'
+if Sidekiq::VERSION < '4'
+  require 'celluloid'
+end
 require 'sidekiq/scheduled'
 
 describe "Sidekiq Integration" do
@@ -85,14 +87,23 @@ describe "Sidekiq Integration" do
       val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
       val.should == nil # nothing really added
 
-      Sidekiq::Scheduled::Poller.new.poll
+      if Sidekiq::VERSION < '4'
+        Sidekiq::Scheduled::Poller.new.poll
+      else
+        Sidekiq::Scheduled::Poller.new.enqueue
+      end
 
       val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
       val.should == nil # nothing added yet
 
       # process scheduler in future
       Timecop.freeze(worktime) do
-        Sidekiq::Scheduled::Poller.new.poll
+        if Sidekiq::VERSION < '4'
+          Sidekiq::Scheduled::Poller.new.poll
+        else
+          Sidekiq::Scheduled::Poller.new.enqueue
+        end
+
         val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
         hash = JSON.parse(val)
         hash["class"].should == "QueueBus::Worker"
