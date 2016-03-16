@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency('queue-bus', '0.5.6')
-  s.add_dependency('sidekiq', ['>= 3.0.0', '< 4.0'])
+  s.add_dependency('sidekiq', ['>= 3.0.0', '< 5.0'])
 
   s.add_development_dependency("rspec")
   s.add_development_dependency("fakeredis")
