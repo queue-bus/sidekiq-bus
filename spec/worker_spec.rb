@@ -16,9 +16,8 @@ module QueueBus
 
     it "should not freak out if class not there anymore" do
       hash = {"bus_class_proxy" => "QueueBus::BadClass", "ok" => true}
-      lambda {
-        QueueBus::Worker.perform(JSON.generate(hash))
-      }.should_not raise_error
+
+      QueueBus::Worker.perform(JSON.generate(hash)).should == nil
     end
 
     it "should raise error if proxy raises error" do
@@ -26,7 +25,7 @@ module QueueBus
       QueueBus::Rider.should_receive(:perform).with(hash).and_raise("rider crash")
       lambda {
         QueueBus::Worker.perform(JSON.generate(hash))
-      }.should raise_error
+      }.should raise_error("rider crash")
     end
   end
 end
