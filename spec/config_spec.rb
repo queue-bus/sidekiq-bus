@@ -54,7 +54,7 @@ describe "QueueBus config" do
     # and should raise if already set
     lambda {
       QueueBus.adapter = :data
-    }.should raise_error
+    }.should raise_error("Adapter already set to QueueBus::Adapters::Sidekiq")
   end
 
   context "with a fresh load" do
@@ -69,7 +69,7 @@ describe "QueueBus config" do
       # and should raise if already set
       lambda {
         QueueBus.adapter = :data
-      }.should raise_error
+      }.should raise_error("Adapter already set to QueueBus::Adapters::Sidekiq")
     end
 
     it "should be able to be set to something else" do

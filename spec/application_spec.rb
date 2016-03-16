@@ -31,15 +31,15 @@ module QueueBus
       it "should raise an error if not valid" do
         lambda {
           Application.new("")
-        }.should raise_error
+        }.should raise_error("Invalid application name")
 
         lambda {
           Application.new(nil)
-        }.should raise_error
+        }.should raise_error("Invalid application name")
 
         lambda {
           Application.new("/")
-        }.should raise_error
+        }.should raise_error("Invalid application name")
       end
     end
 

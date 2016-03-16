@@ -1,11 +1,11 @@
-require 'spec_helper' 
+require 'spec_helper'
 
 module QueueBus
   describe Dispatch do
     it "should not start with any applications" do
       Dispatch.new("d").subscriptions.size.should == 0
     end
-    
+
     it "should register code to run and execute it" do
       dispatch = Dispatch.new("d")
       dispatch.subscribe("my_event") do |attrs|
@@ -18,15 +18,12 @@ module QueueBus
       dispatch.execute("my_event", {"bus_event_type" => "my_event", "ok" => true})
       Runner1.value.should == 1
       Runner1.attributes.should == {"bus_event_type" => "my_event", "ok" => true}
-      
     end
-    
+
     it "should not crash if not there" do
-      lambda {
-        Dispatch.new("d").execute("fdkjh", "bus_event_type" => "fdkjh")
-      }.should_not raise_error
+      Dispatch.new("d").execute("fdkjh", "bus_event_type" => "fdkjh").should == nil
     end
-    
+
     describe "Top Level" do
       before(:each) do
          QueueBus.dispatch("testit") do
@@ -41,13 +38,13 @@ module QueueBus
            high "event3" do
              Runner2.run({})
            end
-           
+
            low /^patt.+ern/ do
              Runner.run({})
            end
          end
        end
-       
+
       it "should register and run" do
         Runner2.value.should == 0
         QueueBus.dispatcher_execute("testit", "event2", "bus_event_type" => "event2")
@@ -57,7 +54,7 @@ module QueueBus
         QueueBus.dispatcher_execute("testit", "event1", "bus_event_type" => "event1")
         Runner2.value.should == 3
       end
-      
+
       it "should return the subscriptions" do
         dispatcher = QueueBus.dispatcher_by_key("testit")
         subs = dispatcher.subscriptions.all
@@ -68,9 +65,8 @@ module QueueBus
                             [ "(?-mix:^patt.+ern)", "testit_low"]
                          ]
       end
-    
+
     end
   end
 
 end
-
