@@ -4,6 +4,13 @@ module QueueBus
       def enabled!
         # know we are using it
         require 'sidekiq'
+
+        #this sidekiq middleware adds in the 'retry' key to the job payload so we ensure sidekiq plays well with resque
+        ::Sidekiq.configure_server do |config|
+          config.client_middleware do |chain|
+            chain.prepend ::SidekiqBus::Middleware::Client::Retry
+          end
+        end
         ::QueueBus::Worker.include ::Sidekiq::Worker
       end
 
