@@ -59,10 +59,10 @@ RSpec.configure do |config|
   config.alias_example_to :fit, focus: true
 
   config.mock_with :rspec do |c|
-    c.syntax = :should
+    c.syntax = :expect
   end
   config.expect_with :rspec do |c|
-    c.syntax = :should
+    c.syntax = :expect
   end
 
   config.before(:each) do

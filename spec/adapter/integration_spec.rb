@@ -19,26 +19,26 @@ describe "Sidekiq Integration" do
 
     it "should publish and receive" do
       Sidekiq::Testing.fake!
-      QueueBus::Runner1.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
 
       QueueBus.publish("event_name", "ok" => true)
-      QueueBus::Runner1.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
 
       QueueBus::Worker.perform_one
 
-      QueueBus::Runner1.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
 
       QueueBus::Worker.perform_one
 
-      QueueBus::Runner1.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(1)
     end
 
     it "should publish and receive" do
       Sidekiq::Testing.inline!
-      QueueBus::Runner1.value.should == 0
+      expect(QueueBus::Runner1.value).to eq(0)
 
       QueueBus.publish("event_name", "ok" => true)
-      QueueBus::Runner1.value.should == 1
+      expect(QueueBus::Runner1.value).to eq(1)
     end
 
   end
@@ -46,7 +46,7 @@ describe "Sidekiq Integration" do
   describe "Delayed Publishing" do
     before(:each) do
       Timecop.freeze(now)
-      QueueBus.stub(:generate_uuid).and_return("idfhlkj")
+      allow(QueueBus).to receive(:generate_uuid).and_return("idfhlkj")
     end
     after(:each) do
       Timecop.return
@@ -69,10 +69,10 @@ describe "Sidekiq Integration" do
 
       hash = JSON.parse(val)
 
-      hash["class"].should == "QueueBus::Worker"
-      hash["args"].size.should == 1
-      JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs)
-      hash["queue"].should == "bus_incoming"
+      expect(hash["class"]).to eq("QueueBus::Worker")
+      expect(hash["args"].size).to eq(1)
+      expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs))
+      expect(hash["queue"]).to eq("bus_incoming")
     end
 
     it "should move it to the real queue when processing" do
@@ -80,12 +80,12 @@ describe "Sidekiq Integration" do
       event_name = "event_name"
 
       val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
-      val.should == nil
+      expect(val).to eq(nil)
 
       QueueBus.publish_at(future, event_name, hash)
 
       val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
-      val.should == nil # nothing really added
+      expect(val).to eq(nil) # nothing really added
 
       if Sidekiq::VERSION < '4'
         Sidekiq::Scheduled::Poller.new.poll
@@ -94,7 +94,7 @@ describe "Sidekiq Integration" do
       end
 
       val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
-      val.should == nil # nothing added yet
+      expect(val).to eq(nil) # nothing added yet
 
       # process scheduler in future
       Timecop.freeze(worktime) do
@@ -106,17 +106,17 @@ describe "Sidekiq Integration" do
 
         val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
         hash = JSON.parse(val)
-        hash["class"].should == "QueueBus::Worker"
-        hash["args"].size.should == 1
-        JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs)
+        expect(hash["class"]).to eq("QueueBus::Worker")
+        expect(hash["args"].size).to eq(1)
+        expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "QueueBus::Publisher", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(delayed_attrs))
 
        QueueBus::Publisher.perform(JSON.parse(hash["args"].first))
 
        val = QueueBus.redis { |redis| redis.lpop("queue:bus_incoming") }
        hash = JSON.parse(val)
-       hash["class"].should == "QueueBus::Worker"
-       hash["args"].size.should == 1
-       JSON.parse(hash["args"].first).should == {"bus_class_proxy" => "QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs)
+       expect(hash["class"]).to eq("QueueBus::Worker")
+       expect(hash["args"].size).to eq(1)
+       expect(JSON.parse(hash["args"].first)).to eq({"bus_class_proxy" => "QueueBus::Driver", "bus_event_type"=>"event_name", "two"=>"here", "one"=>1, "id" => 12}.merge(bus_attrs))
       end
     end
 
