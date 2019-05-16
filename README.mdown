@@ -11,7 +11,6 @@ To install, include the 'sidekiq-bus' gem and add the following to your Rakefile
 require "sidekiq_bus/tasks"
 ```
 
-
 ### Example
 
 Application A can publish an event
@@ -107,6 +106,29 @@ end
 ```
 
 Note: This subscribes when this class is loaded, so it needs to be in your load or otherwise referenced/required during app initialization to work properly.
+
+### sidekiq.rb
+
+To make sure that your sidekiq server is consuming on the proper queues, add code like
+this to your `config/sidekiq.rb` file:
+
+```ruby
+# config/sidekiq.rb
+
+# Load the environment here
+require './boot.rb'
+
+if Sidekiq.server?
+  # Load the queues into sidekiq:
+  weights = {
+    'app_events'    => 10,
+    'app_heartbeat' => 3,
+    'app_refresh'   => 1
+  }
+  Sidekiq.options[:queues] =
+    SidekiqBus.generate_weighted_queues(overrides: weights, default: 2)
+end
+```
 
 ### Commands
 
