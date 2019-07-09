@@ -3,6 +3,7 @@
 require 'queue-bus'
 require 'sidekiq_bus/adapter'
 require 'sidekiq_bus/version'
+require 'sidekiq_bus/server'
 require 'sidekiq_bus/middleware/retry'
 
 module SidekiqBus
