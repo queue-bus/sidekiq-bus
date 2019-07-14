@@ -11,8 +11,6 @@ Gem::Specification.new do |s|
   s.summary     = %q{A simple event bus on top of Sidekiq}
   s.description = %q{A simple event bus on top of Sidekiq. Publish and subscribe to events as they occur through a queue.}
 
-  s.rubyforge_project = "sidekiq-bus"
-
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
