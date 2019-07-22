@@ -8,6 +8,18 @@ reset_test_adapter
 require 'fakeredis'
 Sidekiq.redis = ConnectionPool.new { Redis.new(driver: Redis::Connection::Memory) }
 
+require 'fileutils'
+
+# Ensuring log file exist and are ready for running specs.
+log_file = File.join(__dir__, '../log/test.log')
+FileUtils.mkdir_p(File.dirname(log_file))
+FileUtils.touch(log_file)
+
+logger = Logger.new(File.open(log_file, 'a'))
+
+Sidekiq.logger = logger
+QueueBus.logger = logger
+
 require 'sidekiq/testing'
 
 module QueueBus
