@@ -5,8 +5,6 @@ require 'sidekiq_bus/adapter'
 require 'sidekiq_bus/version'
 require 'sidekiq_bus/middleware/retry'
 
-QueueBus.adapter = QueueBus::Adapters::Sidekiq.new
-
 module SidekiqBus
   # This method will analyze the current queues and generate an array that
   # can operate as the sidekiq queues configuration. It should be based on how
@@ -44,3 +42,5 @@ module SidekiqBus
     entries.flat_map { |e| Array.new(e.weight, e.queue) }
   end
 end
+
+QueueBus.adapter = QueueBus::Adapters::Sidekiq.new unless QueueBus.has_adapter?
