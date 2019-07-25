@@ -43,4 +43,9 @@ module SidekiqBus
   end
 end
 
-QueueBus.adapter = QueueBus::Adapters::Sidekiq.new unless QueueBus.has_adapter?
+if QueueBus.has_adapter?
+  warn '[SidekiqBus] Not setting adapter on queue-bus because ' \
+      "#{QueueBus.adapter.class.name} is already the adapter"
+else
+  QueueBus.adapter = QueueBus::Adapters::Sidekiq.new
+end
