@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2019-07-29
+
+### Changed
+- Increased the minimum version of queue-bus
+- If the adapter is already set, will not warn instead of error.
+
 ## [0.6.1] - 2019-06-17
 ### Changed
 
