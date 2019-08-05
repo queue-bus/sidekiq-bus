@@ -15,17 +15,32 @@ describe 'adapter is set' do
   end
 
   describe '.setup_heartbeat!' do
-    context 'when already setup' do
-      before { QueueBus.heartbeat! }
+    let(:config) { spy('Sidekiq') }
 
-      it 'does not change schedule' do
-        expect { QueueBus.heartbeat! }
-          .not_to(change { Sidekiq.get_schedule('sidekiqbus_heartbeat') })
+    around do |example|
+      begin
+        old = Sidekiq.options[:lifecycle_events][:startup]
+        Sidekiq.options[:lifecycle_events][:startup] = []
+        example.run
+      ensure
+        Sidekiq.options[:lifecycle_events][:startup] = old
       end
+    end
 
+    before do
+      # This configuration must think it's running on the server.
+      allow(Sidekiq).to receive(:server?).and_return(true)
+
+      # Turn on heartbeats
+      QueueBus.heartbeat!
+
+      # Need to have the schedule loaded before we load anything new
+      Sidekiq::Scheduler.instance.load_schedule!
+    end
+
+    shared_examples 'a scheduled heartbeat' do
       it 'has the schedule for every minute' do
-        expect(Sidekiq.get_schedule('sidekiqbus_heartbeat')['every'])
-          .to eq '1min'
+        expect(Sidekiq.get_schedule('sidekiqbus_heartbeat')['every']).to eq '1min'
       end
 
       it 'has scheduled the queue bus worker' do
@@ -44,11 +59,26 @@ describe 'adapter is set' do
       end
     end
 
-    context 'when it does not exist' do
-      it 'sets the schedule' do
-        expect { QueueBus.heartbeat! }
-          .to(change { Sidekiq.get_schedule('sidekiqbus_heartbeat') })
+    context 'when dynamic' do
+      before do
+        allow(Sidekiq::Scheduler.instance).to receive(:dynamic).and_return(true)
+
+        # Simulate running startup events
+        Sidekiq.options[:lifecycle_events][:startup].each(&:call)
       end
+
+      it_behaves_like 'a scheduled heartbeat'
+    end
+
+    context 'when non-dynamic' do
+      before do
+        allow(Sidekiq::Scheduler.instance).to receive(:dynamic).and_return(false)
+
+        # Simulate running startup events
+        Sidekiq.options[:lifecycle_events][:startup].each(&:call)
+      end
+
+      it_behaves_like 'a scheduled heartbeat'
     end
   end
 end
