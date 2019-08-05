@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [0.8.1] - 2019-08-05
+
+### Fixed
+- Schedule is now setup correctly for dyanmic schedules and non-dynamic
+
 ## [0.8.0] - 2019-07-31
 
 ### Added
