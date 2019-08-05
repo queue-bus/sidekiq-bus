@@ -47,6 +47,14 @@ module QueueBus
       def setup_heartbeat!(queue_name)
         require 'sidekiq-scheduler'
 
+        ::Sidekiq.configure_server do |config|
+          config.on(:startup) { set_schedule(queue_name) }
+        end
+      end
+
+      private
+
+      def set_schedule(queue_name)
         ::Sidekiq.set_schedule(
           'sidekiqbus_heartbeat',
           every: '1min',
@@ -57,8 +65,8 @@ module QueueBus
           queue: queue_name,
           description: 'Enqueues a heart beat every minute for the queue-bus'
         )
-        # Must reload the schedule to make it present in memory
-        ::Sidekiq.reload_schedule!
+
+        ::Sidekiq::Scheduler.instance.update_schedule unless ::Sidekiq::Scheduler.instance.dynamic
       end
     end
   end
