@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'timecop'
 require 'queue-bus'
 require 'adapter/support'
@@ -28,8 +30,8 @@ module QueueBus
       @value ||= 0
     end
 
-    def self.attributes
-      @attributes
+    class << self
+      attr_reader :attributes
     end
 
     def self.run(attrs)
@@ -51,9 +53,9 @@ module QueueBus
   end
 end
 
-def test_sub(event_name, queue="default")
-  matcher = {"bus_event_type" => event_name}
-  QueueBus::Subscription.new(queue, event_name, "::QueueBus::Rider", matcher, nil)
+def test_sub(event_name, queue = 'default')
+  matcher = { 'bus_event_type' => event_name }
+  QueueBus::Subscription.new(queue, event_name, '::QueueBus::Rider', matcher, nil)
 end
 
 def test_list(*args)
@@ -65,7 +67,6 @@ def test_list(*args)
 end
 
 RSpec.configure do |config|
-
   config.run_all_when_everything_filtered = true
   config.filter_run focus: true
   config.alias_example_to :fit, focus: true
@@ -83,8 +84,8 @@ RSpec.configure do |config|
   end
   config.after(:each) do
     begin
-      QueueBus.redis { |redis| redis.flushall }
-    rescue
+      QueueBus.redis(&:flushall)
+    rescue StandardError
     end
     QueueBus.send(:reset)
     QueueBus::Runner1.reset
