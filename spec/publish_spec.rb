@@ -12,7 +12,7 @@ describe "Publishing an event" do
   let(:bus_attrs) { {"bus_class_proxy"=>"QueueBus::Driver",
                      "bus_published_at" => Time.now.to_i,
                      "bus_id"=>"#{Time.now.to_i}-idfhlkj",
-                     "bus_app_hostname" =>  `hostname 2>&1`.strip.sub(/.local/,'')} }
+                     "bus_app_hostname" => Socket.gethostname } }
 
   it "should add it to Redis" do
     hash = {:one => 1, "two" => "here", "id" => 12 }
