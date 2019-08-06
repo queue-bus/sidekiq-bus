@@ -53,7 +53,7 @@ describe "Sidekiq Integration" do
     end
     let(:delayed_attrs) { {"bus_delayed_until" => future.to_i,
                        "bus_id" => "#{now.to_i}-idfhlkj",
-                       "bus_app_hostname" =>  `hostname 2>&1`.strip.sub(/.local/,'')} }
+                       "bus_app_hostname" =>  Socket.gethostname} }
 
     let(:bus_attrs) { delayed_attrs.merge({"bus_published_at" => worktime.to_i})}
     let(:now)    { Time.parse("01/01/2013 5:00")}
