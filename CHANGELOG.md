@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Schedule now uses cron format to schedule heartbeat. The "every: 1min" format was causing multiple heartbeats to fire in the same minute if there were multiple sidekiq processes with the dynamic setting turned off (which is default).
+
 ### [0.8.1] - 2019-08-05
 
 ### Fixed

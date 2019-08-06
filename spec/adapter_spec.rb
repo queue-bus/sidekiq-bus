@@ -40,7 +40,8 @@ describe 'adapter is set' do
 
     shared_examples 'a scheduled heartbeat' do
       it 'has the schedule for every minute' do
-        expect(Sidekiq.get_schedule('sidekiqbus_heartbeat')['every']).to eq '1min'
+        expect(Sidekiq.get_schedule('sidekiqbus_heartbeat')['every']).to be_nil
+        expect(Sidekiq.get_schedule('sidekiqbus_heartbeat')['cron']).to eq '0 * * * * *'
       end
 
       it 'has scheduled the queue bus worker' do
