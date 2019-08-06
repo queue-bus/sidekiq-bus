@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sidekiq-bus'
 
 def reset_test_adapter
