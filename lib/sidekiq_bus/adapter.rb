@@ -57,7 +57,7 @@ module QueueBus
       def set_schedule(queue_name)
         ::Sidekiq.set_schedule(
           'sidekiqbus_heartbeat',
-          every: '1min',
+          cron: '0 * * * * *', # Runs every minute
           class: ::QueueBus::Worker.name,
           args: [
             ::QueueBus::Util.encode('bus_class_proxy' => ::QueueBus::Heartbeat.name)
