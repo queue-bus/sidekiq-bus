@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2019-12-03
+
+### Added
+- Tab in sidekiq web ui for bus info
+
 ### [0.8.2] - 2019-08-06
 
 ### Fixed
