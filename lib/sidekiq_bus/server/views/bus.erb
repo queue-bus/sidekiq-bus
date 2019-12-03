@@ -1,0 +1,202 @@
+
+<script LANGUAGE="JavaScript">
+<!--
+function confirmSubmit()
+{
+var agree=confirm("Are you sure you wish to continue?");
+if (agree)
+	return true ;
+else
+	return false ;
+}
+
+function setSample() {
+  var text = document.getElementById("query_attributes").textContent;
+  var textArea = document.getElementById('querytext');
+  textArea.value = text;
+  return false;
+}
+// -->
+</script>
+
+<%
+  app_hash = {}
+  class_hash = {}
+  event_hash = {}
+  query_string = params[:query].to_s.strip
+
+  query_attributes = nil
+  query_error = nil
+  if query_string.length > 0
+    begin
+      query_attributes = ::SidekiqBus::Server::Helpers.parse_query(query_string)
+      raise "Not a JSON Object" unless query_attributes.is_a?(Hash)
+    rescue Exception => e
+      query_attributes = nil
+      query_error = e.message
+    end
+
+    if query_attributes
+      # sort keys for display
+      query_attributes = ::SidekiqBus::Server::Helpers.sort_query(query_attributes)
+    end
+  end
+
+  # collect each differently
+  ::QueueBus::Application.all.each do |app|
+    app_key = app.app_key
+
+    subscriptions = ::SidekiqBus::Server::Helpers.query_subscriptions(app, query_attributes)
+    subscriptions.each do |sub|
+      class_name = sub.class_name
+      queue = sub.queue_name
+      filters = sub.matcher.filters
+      sub_key = sub.key
+
+      if filters["bus_event_type"]
+        event = filters["bus_event_type"]
+      else
+        event = "see filter"
+      end
+
+      app_hash[app_key] ||= []
+      app_hash[app_key] << [sub_key, event, class_name, queue, filters]
+
+      class_hash[class_name] ||= []
+      class_hash[class_name] << [app_key, sub_key, event, queue, filters]
+
+      event_hash[event] ||= []
+      event_hash[event] << [app_key, sub_key, class_name, queue, filters]
+    end
+  end
+
+  # sort each list item by secondary label
+  class_hash.each do |_, array|
+    array.sort!{ |a,b| a.first <=> b.first }
+  end
+  event_hash.each do |_, array|
+    array.sort!{ |a,b| a.first <=> b.first }
+  end
+
+  # helper to display either
+  def display_row(name, val, button=nil, first=false)
+    form = ""
+    if button
+      text, url = button
+      form = "<form method='POST' action='#{url}' style='float:left; padding:0 5px 0 0;margin:0;'>#{csrf_tag}<input type='submit' name='' value='#{h(text)}' style='padding:0;margin:0;' onclick=\"return confirmSubmit();\"/><input type='hidden' name='name' value='#{h(name)}' /></form>"
+    end
+
+    if !val
+      out = "<td>&nbsp;</td><td>&nbsp;</td>"
+    else
+      one, two, three, queue, filters = val
+      out = "<td>#{h(one)}</td><td>#{h(two)}</td><td>#{h(three)}</td><td><a href='#{"queues/#{queue}"}'>#{h(queue)}</a></td>"
+      out << "<td>#{h(::QueueBus::Util.encode(filters).gsub(/\"bus_special_value_(\w+)\"/){ "(#{$1})" }).gsub(" ", "&nbsp;").gsub('&quot;,&quot;', '&quot;, &quot;')}</td>"
+    end
+
+    if first
+      "<tr><td>#{h(name)}#{form}</td>#{out}</tr>\n"
+    else
+      "<tr><td>&nbsp;</td>#{out}</tr>\n"
+    end
+  end
+
+  def output_hash(hash, action=nil)
+    out = ""
+    hash.keys.sort.each do |item|
+      display = hash[item]
+      first = display.shift
+      out << display_row(item, first, action, true)
+      display.each do |val|
+        out << display_row(item, val, action)
+      end
+    end
+    out
+  end
+%>
+
+<h1 class='wi'>Sample Event</h1>
+<p class='intro'>Enter JSON of an event to see applicable subscriptions.</p>
+<div style="text-align: center;width:700px;">
+  -<form method="GET" action="<%= "bus" %>" style="float:none;padding:0;margin:0;">
+    <textarea id="querytext" name="query" style="padding: 10px;height:150px;width:700px;font-size:14px;font-family:monospace"><%=
+      h(query_string)
+    %></textarea>
+    <br/>
+    <button onclick="window.location.href = '<%= "bus" %>'; return false;">Clear</button>
+    <input type="submit" name="" value="Filter results to this event"/>
+  </form>
+</div>
+
+<% if query_error %>
+  <blockquote><pre style="text-align:left;font-family:monospace;margin:5px 0 5px 0;padding:10px;background:#f2dede;color:#a94442;"><code><%=
+  h(query_error.strip)
+  %></code></pre></blockquote>
+<% end %>
+<% if query_attributes %>
+  <blockquote><pre style="text-align:left;font-family:monospace;margin:5px 0 5px 0;padding:10px;background:#dff0d8;color:#3c763d;"><code id="query_attributes"><%=
+  h(JSON.pretty_generate(query_attributes).strip)
+  %></code></pre></blockquote>
+  <div style="text-align:right;">
+    <button onclick="return setSample();">Set Sample</button>
+  </div>
+<% end %>
+
+<hr/>
+
+<h1 class='wi'>Applications</h1>
+<p class='intro'>The apps below have registered the given classes and queues.</p>
+<table class='table-striped table-bordered'>
+  <thead class="thead-dark">
+  <tr>
+    <th>App Key</th>
+    <th>Subscription Key</th>
+    <th>Event Type</th>
+    <th>Class Name</th>
+    <th>Queue</th>
+    <th>Filters</th>
+  </tr>
+  </thead>
+
+  <%= output_hash(app_hash, query_attributes ? false : ["Unsubscribe", "bus/unsubscribe"]) %>
+</table>
+
+<p>&nbsp;</p>
+
+<h1 class='wi'>Events</h1>
+<p class='intro'>The events below have been registered by the given applications and queues.</p>
+
+<table class='table-striped table-bordered'>
+  <thead class="thead-dark">
+  <tr>
+    <th>Event Type</th>
+    <th>App Key</th>
+    <th>Subscription Key</th>
+    <th>Class Name</th>
+    <th>Queue</th>
+    <th>Filters</th>
+  </tr>
+  </thead>
+  <%= output_hash(event_hash, false) %>
+</table>
+
+
+
+<p>&nbsp;</p>
+
+<h1 class='wi'>Classes</h1>
+<p class='intro'>The classes below have been registered by the given applications and queues.</p>
+<table class='table-striped table-bordered'>
+  <thead class="thead-dark">
+  <tr>
+    <th>Class Name</th>
+    <th>App Key</th>
+    <th>Subscription Key</th>
+    <th>Event Type</th>
+    <th>Queue</th>
+    <th>Filters</th>
+  </tr>
+  </thead>
+  <%= output_hash(class_hash, false) %>
+</table>
+
