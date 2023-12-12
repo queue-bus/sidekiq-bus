@@ -45,33 +45,44 @@ module QueueBus
       # set up. You may consider enabling dynamic schedules to keep all nodes up
       # to date if it ever changes.
       def setup_heartbeat!(queue_name)
-        begin
-          require 'sidekiq-scheduler'
-        rescue LoadError
-          QueueBus.logger.error("sidekiq-scheduler must be installed!")
-          raise
+        if defined?(::Sidekiq::Enterprise)
+          ::Sidekiq.configure_server do |config|
+            config.periodic do |mgr|
+              mgr.register(
+                '* * * * *', # Runs every minute
+                ::QueueBus::Worker.name,
+                args: [
+                  ::QueueBus::Util.encode('bus_class_proxy' => ::QueueBus::Heartbeat.name)
+                ],
+                queue: queue_name
+              )
+            end
+          end
+        else
+          begin
+            require 'sidekiq-scheduler'
+          rescue LoadError
+            QueueBus.logger.error("sidekiq-scheduler must be installed!")
+            raise
+          end
+
+          ::Sidekiq.configure_server do |config|
+            config.on(:startup) do
+              ::Sidekiq.set_schedule(
+                'sidekiqbus_heartbeat',
+                cron: '0 * * * * *', # Runs every minute
+                class: ::QueueBus::Worker.name,
+                args: [
+                  ::QueueBus::Util.encode('bus_class_proxy' => ::QueueBus::Heartbeat.name)
+                ],
+                queue: queue_name,
+                description: 'Enqueues a heart beat every minute for the queue-bus'
+              )
+
+              ::Sidekiq::Scheduler.instance.update_schedule unless ::Sidekiq::Scheduler.instance.dynamic
+            end
+          end
         end
-
-        ::Sidekiq.configure_server do |config|
-          config.on(:startup) { set_schedule(queue_name) }
-        end
-      end
-
-      private
-
-      def set_schedule(queue_name)
-        ::Sidekiq.set_schedule(
-          'sidekiqbus_heartbeat',
-          cron: '0 * * * * *', # Runs every minute
-          class: ::QueueBus::Worker.name,
-          args: [
-            ::QueueBus::Util.encode('bus_class_proxy' => ::QueueBus::Heartbeat.name)
-          ],
-          queue: queue_name,
-          description: 'Enqueues a heart beat every minute for the queue-bus'
-        )
-
-        ::Sidekiq::Scheduler.instance.update_schedule unless ::Sidekiq::Scheduler.instance.dynamic
       end
     end
   end
