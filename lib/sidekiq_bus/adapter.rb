@@ -45,7 +45,12 @@ module QueueBus
       # set up. You may consider enabling dynamic schedules to keep all nodes up
       # to date if it ever changes.
       def setup_heartbeat!(queue_name)
-        require 'sidekiq-scheduler'
+        begin
+          require 'sidekiq-scheduler'
+        rescue LoadError
+          QueueBus.logger.error("sidekiq-scheduler must be installed!")
+          raise
+        end
 
         ::Sidekiq.configure_server do |config|
           config.on(:startup) { set_schedule(queue_name) }
