@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'celluloid' if Sidekiq::VERSION < '4'
 require 'sidekiq/scheduled'
 
 describe 'Sidekiq Integration' do
@@ -88,22 +87,14 @@ describe 'Sidekiq Integration' do
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing really added
 
-      if Sidekiq::VERSION < '4'
-        Sidekiq::Scheduled::Poller.new.poll
-      else
-        Sidekiq::Scheduled::Poller.new.enqueue
-      end
+      Sidekiq::Scheduled::Poller.new.enqueue
 
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing added yet
 
       # process scheduler in future
       Timecop.freeze(worktime) do
-        if Sidekiq::VERSION < '4'
-          Sidekiq::Scheduled::Poller.new.poll
-        else
-          Sidekiq::Scheduled::Poller.new.enqueue
-        end
+        Sidekiq::Scheduled::Poller.new.enqueue
 
         val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
         hash = JSON.parse(val)
