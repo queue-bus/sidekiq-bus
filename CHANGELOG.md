@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-05-13
+
 ### Changed
 - [BREAKING] Updated sidekiq-scheduler to 4.0.3. This adds support for Redis 5 and Sidekiq 6, but removes support for Redis < 4.2 and Sidekiq < 4.X. The dropped versions are long out of support; please use this release to facilitate an update.
 
