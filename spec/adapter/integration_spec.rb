@@ -4,6 +4,29 @@ require 'spec_helper'
 require 'sidekiq/scheduled'
 
 describe 'Sidekiq Integration' do
+  # Helper method to manually process scheduled jobs since FakeRedis doesn't support
+  # the Lua scripts that Sidekiq::Scheduled::Poller uses
+  def process_scheduled_jobs
+    QueueBus.redis do |redis|
+      now = Time.now.to_f
+
+      # Process both 'schedule' and 'retry' sets
+      %w[schedule retry].each do |set_name|
+        # Get jobs that are ready to be processed (score <= now)
+        jobs = redis.zrangebyscore(set_name, '-inf', now)
+
+        jobs.each do |job_json|
+          # Remove from scheduled set
+          redis.zrem(set_name, job_json)
+
+          # Parse and re-enqueue the job
+          job_data = JSON.parse(job_json)
+          queue_name = job_data['queue'] || 'default'
+          redis.lpush("queue:#{queue_name}", job_json)
+        end
+      end
+    end
+  end
   describe 'Happy Path' do
     before(:each) do
       Sidekiq::Testing.fake!
@@ -87,14 +110,16 @@ describe 'Sidekiq Integration' do
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing really added
 
-      Sidekiq::Scheduled::Poller.new.enqueue
+      # Manually process scheduled jobs since FakeRedis doesn't support Lua scripts
+      # that Sidekiq::Scheduled::Poller uses
+      process_scheduled_jobs
 
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing added yet
 
       # process scheduler in future
       Timecop.freeze(worktime) do
-        Sidekiq::Scheduled::Poller.new.enqueue
+        process_scheduled_jobs
 
         val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
         hash = JSON.parse(val)

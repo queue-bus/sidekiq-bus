@@ -53,6 +53,17 @@ module QueueBus
   end
 end
 
+# class Redis
+#   module Connection
+#     class Memory
+#       def script(*args)
+#         # We could do something for args[1] == Sidekiq::Scheduled::Enq::LUA_ZPOPBYSCORE but this provides the simpler option for now:
+#         raise "NOSCRIPT - FakeRedis gem does not include Lua support"
+#       end
+#     end
+#   end
+# end
+
 def test_sub(event_name, queue = 'default')
   matcher = { 'bus_event_type' => event_name }
   QueueBus::Subscription.new(queue, event_name, '::QueueBus::Rider', matcher, nil)
