@@ -53,16 +53,38 @@ module QueueBus
   end
 end
 
-# class Redis
-#   module Connection
-#     class Memory
-#       def script(*args)
-#         # We could do something for args[1] == Sidekiq::Scheduled::Enq::LUA_ZPOPBYSCORE but this provides the simpler option for now:
-#         raise "NOSCRIPT - FakeRedis gem does not include Lua support"
-#       end
-#     end
-#   end
-# end
+class Redis
+  module Connection
+    class Memory
+      def script(*args)
+        case args[1]
+        when Sidekiq::Scheduled::Enq::LUA_ZPOPBYSCORE
+          QueueBus.redis do |redis|
+            now = Time.now.to_f
+
+            # Process both 'schedule' and 'retry' sets
+            %w[schedule retry].each do |set_name|
+              # Get jobs that are ready to be processed (score <= now)
+              jobs = redis.zrangebyscore(set_name, '-inf', now)
+
+              jobs.each do |job_json|
+                # Remove from scheduled set
+                redis.zrem(set_name, job_json)
+
+                # Parse and re-enqueue the job
+                job_data = JSON.parse(job_json)
+                queue_name = job_data['queue'] || 'default'
+                redis.lpush("queue:#{queue_name}", job_json)
+              end
+            end
+          end
+        else
+          raise "NOSCRIPT - FakeRedis gem does not include Lua support. Please see spec/spec_helper.rb for more information."
+        end
+      end
+    end
+  end
+end
 
 def test_sub(event_name, queue = 'default')
   matcher = { 'bus_event_type' => event_name }
