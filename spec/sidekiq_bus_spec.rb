@@ -4,7 +4,7 @@ require 'spec_helper'
 
 RSpec.describe SidekiqBus do
   describe '.generate_weighted_queues' do
-    subject { SidekiqBus.generate_weighted_queues(args) }
+    subject { SidekiqBus.generate_weighted_queues(**args) }
 
     let(:args) { {} }
 
