@@ -6,8 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Modifies allowed Sidekiq versions to allow Sidekiq 6 upgrade. 1.0.0 made the requisite code changes but did not modify the gemspec properly.
+## [1.1.0] - 2025-05-13
+
+### Changed
 - [Development] Target supported Ruby version 3.2.6
+
+### Fixed
+- Modifies allowed Sidekiq versions to allow Sidekiq 6 upgrade. 1.0.0 made the requisite code changes but did not modify the gemspec properly.
 
 ## [1.0.0] - 2025-05-13
 
