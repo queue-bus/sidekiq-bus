@@ -162,6 +162,22 @@ event to the appropriate code block.
 You can also say `QueueBus.local_mode = :suppress` to turn off publishing altogether.
 This can be helpful inside some sort of migration, for example.
 
+### Development
+
+#### Running Tests
+
+The test suite requires a Redis instance. For convenience, we provide Docker Compose configuration to run Redis in a container:
+
+```bash
+docker-compose up -d
+
+bundle exec rspec
+```
+
+The test suite uses database 15 by default to avoid conflicts with your development Redis data.
+
+You can override the connection string (including the database number) by setting the `REDIS_URL` environment variable.
+
 ### TODO
 
 * Replace local modes with adapters
