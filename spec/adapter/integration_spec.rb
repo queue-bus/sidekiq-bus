@@ -87,9 +87,6 @@ describe 'Sidekiq Integration' do
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing really added
 
-      # NOTE: this is silently invoking a monkey patch in spec_helper
-      # since the Poller invokes a Lua script that FakeRedis does not
-      # natively support.
       Sidekiq::Scheduled::Poller.new(Sidekiq).enqueue
 
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
