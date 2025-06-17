@@ -32,7 +32,9 @@ rescue => e
   exit 1
 end
 
-Sidekiq.redis = ConnectionPool.new { Redis.new(url: redis_url) }
+redis_pool = ConnectionPool.new { Redis.new(url: redis_url) }
+Sidekiq.redis = redis_pool
+SidekiqBus.redis_handler = redis_pool.method(:with).to_proc
 
 require 'fileutils'
 

@@ -11,6 +11,27 @@ To install, include the 'sidekiq-bus' gem and add the following to your Rakefile
 require "sidekiq_bus/tasks"
 ```
 
+### Configure
+Starting from version 7, Sidekiq no longer provides a standard Redis connection pool, instead providing a limited
+wrapper around the low-level RedisClient gem. To maintain compatibility with both QueueBus and later versions of
+Sidekiq, SidekiqBus now requires an explicit Redis handler. To preserve your existing QueueBus data, this handler should
+connect to the same Redis instance and database as your Sidekiq configuration.
+
+The handler can be any object that responds to `call` and yields a Redis connection. In an initializer, set it with:
+
+```ruby
+  # Naive example
+  SidekiqBus.redis_handler = ->(&block) { block.call(Redis.new(my_config) }
+
+  # More typical example using the Redis-recommended ConnectionPool gem
+  pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout) { Redis.new(my_config) }
+  SidekiqBus.redis_handler = pool.method(:with).to_proc
+  # Or, for clarity:
+  SidekiqBus.redis_handler = ->(&block) do
+    pool.with { |redis| block.call(redis) }
+  end
+```
+
 ### Example
 
 Application A can publish an event

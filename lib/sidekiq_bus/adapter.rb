@@ -21,7 +21,7 @@ module QueueBus
       end
 
       def redis(&block)
-        ::Sidekiq.redis(&block)
+        ::SidekiqBus.redis(&block)
       end
 
       def enqueue(queue_name, klass, hash)

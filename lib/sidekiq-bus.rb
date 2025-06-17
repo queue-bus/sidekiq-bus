@@ -7,6 +7,8 @@ require 'sidekiq_bus/server'
 require 'sidekiq_bus/middleware/retry'
 
 module SidekiqBus
+  ConfigurationError = Class.new(StandardError)
+
   # This method will analyze the current queues and generate an array that
   # can operate as the sidekiq queues configuration. It should be based on how
   # The sidekiq CLI builds weighted queues.
@@ -41,6 +43,23 @@ module SidekiqBus
     # Creates an array of N length with the same queue name (N=weight) then
     # flattened into a single array
     entries.flat_map { |e| Array.new(e.weight, e.queue) }
+  end
+
+  def self.redis_handler=(handler)
+    @redis_handler = handler
+    validate_redis_handler
+  end
+
+  def self.redis(&block)
+    validate_redis_handler
+    @redis_handler.call(&block)
+  end
+
+  def self.validate_redis_handler
+    unless @redis_handler.respond_to?(:call)
+      raise ConfigurationError, 'Please set SidekiqBus.redis_handler to a Callable that accepts a block and yields a '\
+        'Redis instance. See the SidekiqBus README for more details.'
+    end
   end
 end
 
