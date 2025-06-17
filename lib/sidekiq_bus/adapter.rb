@@ -66,7 +66,8 @@ module QueueBus
           description: 'Enqueues a heart beat every minute for the queue-bus'
         )
 
-        ::Sidekiq::Scheduler.instance.update_schedule unless ::Sidekiq::Scheduler.instance.dynamic
+        # If dynamic is enabled, this will propagate through a different mechanism
+        SidekiqScheduler::Scheduler.instance.reload_schedule! unless ::Sidekiq::Scheduler.instance.dynamic
       end
     end
   end
