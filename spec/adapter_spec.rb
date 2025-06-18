@@ -19,11 +19,11 @@ describe 'adapter is set' do
 
     around do |example|
       begin
-        old = Sidekiq.options[:lifecycle_events][:startup]
-        Sidekiq.options[:lifecycle_events][:startup] = []
+        old = Sidekiq.default_configuration[:lifecycle_events][:startup]
+        Sidekiq.default_configuration[:lifecycle_events][:startup] = []
         example.run
       ensure
-        Sidekiq.options[:lifecycle_events][:startup] = old
+        Sidekiq.default_configuration[:lifecycle_events][:startup] = old
       end
     end
 
@@ -65,7 +65,7 @@ describe 'adapter is set' do
         allow(Sidekiq::Scheduler.instance).to receive(:dynamic).and_return(true)
 
         # Simulate running startup events
-        Sidekiq.options[:lifecycle_events][:startup].each(&:call)
+        Sidekiq.default_configuration[:lifecycle_events][:startup].each(&:call)
       end
 
       it_behaves_like 'a scheduled heartbeat'
@@ -76,7 +76,7 @@ describe 'adapter is set' do
         allow(Sidekiq::Scheduler.instance).to receive(:dynamic).and_return(false)
 
         # Simulate running startup events
-        Sidekiq.options[:lifecycle_events][:startup].each(&:call)
+        Sidekiq.default_configuration[:lifecycle_events][:startup].each(&:call)
       end
 
       it_behaves_like 'a scheduled heartbeat'

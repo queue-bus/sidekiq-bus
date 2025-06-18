@@ -4,6 +4,10 @@ require 'timecop'
 require 'queue-bus'
 require 'adapter/support'
 require 'pry'
+require 'redis'
+
+# Require some private Sidekiq APIs to simulate internal scheduling behavior
+require "sidekiq/capsule"
 
 reset_test_adapter
 
@@ -33,7 +37,6 @@ rescue => e
 end
 
 redis_pool = ConnectionPool.new { Redis.new(url: redis_url) }
-Sidekiq.redis = redis_pool
 SidekiqBus.redis_handler = redis_pool.method(:with).to_proc
 
 require 'fileutils'
@@ -45,8 +48,17 @@ FileUtils.touch(log_file)
 
 logger = Logger.new(File.open(log_file, 'a'))
 
-Sidekiq.logger = logger
 QueueBus.logger = logger
+
+Sidekiq.configure_server do |config|
+  config.redis = { url: redis_url }
+  config.logger = logger
+end
+
+Sidekiq.configure_client do |config|
+  config.redis = { url: redis_url }
+  config.logger = logger
+end
 
 require 'sidekiq/testing'
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+
+## [2.0.0] - 2025-06-17
+
+- [BREAKING] Sidekiq major version now targets 7.X
+- [BREAKING] SidekiqScheduler major version now targets 5.X to support Sidekiq 7
+- [BREAKING] SidekiqBus must now be configured with a Redis pool. See the README for more details.
 - [Development] Discontinues use of FakeRedis in favor of real Redis for testing.
 
 ## [1.1.0] - 2025-05-13

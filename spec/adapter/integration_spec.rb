@@ -87,14 +87,14 @@ describe 'Sidekiq Integration' do
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing really added
 
-      Sidekiq::Scheduled::Poller.new(Sidekiq).enqueue
+      Sidekiq::Scheduled::Poller.new(Sidekiq.default_configuration).enqueue
 
       val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
       expect(val).to eq(nil) # nothing added yet
 
       # process scheduler in future
       Timecop.freeze(worktime) do
-        Sidekiq::Scheduled::Poller.new(Sidekiq).enqueue
+        Sidekiq::Scheduled::Poller.new(Sidekiq.default_configuration).enqueue
 
         val = QueueBus.redis { |redis| redis.lpop('queue:bus_incoming') }
         hash = JSON.parse(val)
