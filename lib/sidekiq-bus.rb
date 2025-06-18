@@ -8,6 +8,8 @@ require 'sidekiq_bus/middleware/retry'
 
 module SidekiqBus
   ConfigurationError = Class.new(StandardError)
+  REDIS_HANDLER_ERROR_MESSAGE = 'Please set SidekiqBus.redis_handler to a Callable that accepts a block and yields a '\
+        'Redis instance. See the SidekiqBus README for more details.'
 
   # This method will analyze the current queues and generate an array that
   # can operate as the sidekiq queues configuration. It should be based on how
@@ -46,20 +48,18 @@ module SidekiqBus
   end
 
   def self.redis_handler=(handler)
+    unless handler.respond_to?(:call)
+      raise ConfigurationError, REDIS_HANDLER_ERROR_MESSAGE
+    end
     @redis_handler = handler
-    validate_redis_handler
   end
 
   def self.redis(&block)
-    validate_redis_handler
+    raise ConfigurationError, REDIS_HANDLER_ERROR_MESSAGE unless @redis_handler
     @redis_handler.call(&block)
   end
 
   def self.validate_redis_handler
-    unless @redis_handler.respond_to?(:call)
-      raise ConfigurationError, 'Please set SidekiqBus.redis_handler to a Callable that accepts a block and yields a '\
-        'Redis instance. See the SidekiqBus README for more details.'
-    end
   end
 end
 
