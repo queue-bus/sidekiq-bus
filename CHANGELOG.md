@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [2.0.0] - 2025-06-25
+
+### Fixed 
+- Properly installs the QueueBus heartbeat when SidekiqSchedule is not run in dynamic mode. 
+
 ## [2.0.0] - 2025-06-17
 
 - [BREAKING] Sidekiq major version now targets 7.X
