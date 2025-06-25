@@ -67,7 +67,13 @@ module QueueBus
         )
 
         # If dynamic is enabled, this will propagate through a different mechanism
-        SidekiqScheduler::Scheduler.instance.reload_schedule! unless ::Sidekiq::Scheduler.instance.dynamic
+        unless ::Sidekiq::Scheduler.instance.dynamic
+          # despite the docs for SidekiqScheduler, the above entry doesn't hit the memory store until we reload from
+          # the redis store:
+          ::Sidekiq.reload_schedule!
+          # this then allows the updated schedule to be applied:
+          SidekiqScheduler::Scheduler.instance.reload_schedule!
+        end
       end
     end
   end
