@@ -134,6 +134,7 @@ module SidekiqBus
   end
 end
 
-Sidekiq::Web.register SidekiqBus::Server
-Sidekiq::Web.locales << File.expand_path(File.dirname(__FILE__) + "/web/locales")
-Sidekiq::Web.tabs['Bus'] = 'bus'
+Sidekiq::Web.configure do |cfg|
+  cfg.register(SidekiqBus::Server, name: 'sidekiq_bus', tab: 'Bus', index: 'bus')
+  cfg.locales << File.expand_path(File.dirname(__FILE__) + "/web/locales")
+end

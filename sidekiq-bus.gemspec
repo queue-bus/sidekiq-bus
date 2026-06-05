@@ -18,8 +18,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency('queue-bus', ['>= 0.7', '< 1'])
   s.add_dependency('redis', ['>= 4.0', '< 6.0'])
-  s.add_dependency('sidekiq', ['>= 7.0.0', '< 8.0'])
-  s.add_dependency('sidekiq-scheduler', ['>= 5.0', '< 6.0'])
+  s.add_dependency('sidekiq', ['>= 7.3', '< 9.0'])
+  s.add_dependency('sidekiq-scheduler', ['>= 5.0', '< 7.0'])
 
   s.add_development_dependency("rspec")
   s.add_development_dependency("pry")
