@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [3.0.0] - 2026-06-05
+
+### Changed
+- [BREAKING] Sidekiq dependency now allows Sidekiq 8.X (still supports 7.3+).
+- [BREAKING] SidekiqScheduler dependency now allows 6.X to support Sidekiq 8.
+- Web UI registration migrated to Sidekiq::Web.configure block with explicit
+  name:, tab:, and index: keyword arguments, which are required by Sidekiq 8.
+  The same syntax is forward-compatible with Sidekiq 7.
+
 ## [2.0.0] - 2025-06-25
 
 ### Fixed 
